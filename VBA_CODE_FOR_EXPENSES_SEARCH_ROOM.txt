@@ -1,0 +1,151 @@
+Private Sub Worksheet_Change(ByVal Target As Range)
+    If Target.CountLarge > 1 Then Exit Sub
+
+    ' 1. PMT Method (A2) handle - For Columns B, C, D
+    If Not Intersect(Target, Me.Range("A2")) Is Nothing Then
+        Application.EnableEvents = False
+        Call SummaryByPMT
+        Application.EnableEvents = True
+    End If
+
+    ' 2. Category (F2) handle - For Columns G, H, I
+    If Not Intersect(Target, Me.Range("F2")) Is Nothing Then
+        Application.EnableEvents = False
+        Call SummaryByCategory
+        Application.EnableEvents = True
+    End If
+End Sub
+
+Sub SummaryByPMT()
+    Dim wsData As Worksheet, wsSummary As Worksheet
+    Dim lastRow As Long, i As Long
+    Dim pmtMethod As String
+    Dim dictBill As Object, dictNoBill As Object
+    Dim totalBill As Double, totalNoBill As Double
+    Dim grandTotalBill As Double, grandTotalNoBill As Double
+    Dim Category As String
+    
+    On Error GoTo ErrorHandler
+    Set wsData = ThisWorkbook.Sheets("ALL EXPENSES AND OTHER INCOME")
+    Set wsSummary = Me
+    Set dictBill = CreateObject("Scripting.Dictionary")
+    Set dictNoBill = CreateObject("Scripting.Dictionary")
+    
+    pmtMethod = Trim(wsSummary.Range("A2").Value)
+    If pmtMethod = "" Then Exit Sub
+    
+    lastRow = wsSummary.Cells(wsSummary.Rows.Count, "B").End(xlUp).Row
+    If lastRow < 2 Then lastRow = 2
+    wsSummary.Range("B2:D" & lastRow + 10).ClearContents
+    wsSummary.Range("B2:D" & lastRow + 10).Font.Bold = False
+    
+    lastRow = wsData.Cells(wsData.Rows.Count, "A").End(xlUp).Row
+    
+    For i = 2 To lastRow
+        If UCase(Trim(wsData.Cells(i, 2).Value)) = UCase(pmtMethod) Then
+            Category = Trim(wsData.Cells(i, 3).Value)
+            totalBill = Val(wsData.Cells(i, 7).Value) + Val(wsData.Cells(i, 8).Value) + Val(wsData.Cells(i, 10).Value) + Val(wsData.Cells(i, 13).Value)
+            totalNoBill = Val(wsData.Cells(i, 14).Value) + Val(wsData.Cells(i, 15).Value) + Val(wsData.Cells(i, 17).Value) + Val(wsData.Cells(i, 18).Value)
+            
+            If Category <> "" Then
+                dictBill(Category) = dictBill(Category) + totalBill
+                dictNoBill(Category) = dictNoBill(Category) + totalNoBill
+                grandTotalBill = grandTotalBill + totalBill
+                grandTotalNoBill = grandTotalNoBill + totalNoBill
+            End If
+        End If
+    Next i
+    
+    If dictBill.Count > 0 Then
+        Dim key As Variant, rowNum As Long
+        rowNum = 2
+        For Each key In dictBill.Keys
+            wsSummary.Cells(rowNum, 2).Value = key
+            wsSummary.Cells(rowNum, 3).Value = dictBill(key)
+            wsSummary.Cells(rowNum, 4).Value = dictNoBill(key)
+            rowNum = rowNum + 1
+        Next key
+        wsSummary.Cells(rowNum, 2).Value = "GRAND TOTAL"
+        wsSummary.Cells(rowNum, 3).Value = grandTotalBill
+        wsSummary.Cells(rowNum, 4).Value = grandTotalNoBill
+        wsSummary.Range("B" & rowNum & ":D" & rowNum).Font.Bold = True
+    End If
+    Exit Sub
+ErrorHandler:
+    MsgBox "Error in PMT Search: " & Err.Description
+End Sub
+
+Sub SummaryByCategory()
+    Dim wsData As Worksheet, wsSummary As Worksheet
+    Dim lastRow As Long, i As Long
+    Dim CategoryInput As String
+    Dim dictDetails As Object, dictOtherDetails As Object
+    Dim totalAmt As Double, totalOtherAmt As Double
+    Dim grandTotalExp As Double, grandTotalOther As Double
+    Dim ExpDetails As String
+    
+    On Error GoTo ErrorHandler
+    Set wsData = ThisWorkbook.Sheets("ALL EXPENSES AND OTHER INCOME")
+    Set wsSummary = Me
+    Set dictDetails = CreateObject("Scripting.Dictionary")
+    Set dictOtherDetails = CreateObject("Scripting.Dictionary")
+    
+    CategoryInput = Trim(wsSummary.Range("F2").Value)
+    If CategoryInput = "" Then Exit Sub
+    
+    ' Clear G, H aur I
+    lastRow = wsSummary.Cells(wsSummary.Rows.Count, "G").End(xlUp).Row
+    If lastRow < 2 Then lastRow = 2
+    wsSummary.Range("G2:I" & lastRow + 20).ClearContents
+    wsSummary.Range("G2:I" & lastRow + 20).Font.Bold = False
+    
+    lastRow = wsData.Cells(wsData.Rows.Count, "A").End(xlUp).Row
+    
+    For i = 2 To lastRow
+        If UCase(Trim(wsData.Cells(i, 3).Value)) = UCase(CategoryInput) Then
+            ExpDetails = Trim(wsData.Cells(i, 4).Value)
+            
+            ' 1. Expenses calculation (Bill + W/B)
+            totalAmt = Val(wsData.Cells(i, 7).Value) + Val(wsData.Cells(i, 8).Value) + _
+                       Val(wsData.Cells(i, 10).Value) + Val(wsData.Cells(i, 13).Value) + _
+                       Val(wsData.Cells(i, 14).Value) + Val(wsData.Cells(i, 15).Value) + _
+                       Val(wsData.Cells(i, 17).Value) + Val(wsData.Cells(i, 18).Value)
+            
+            ' 2. Other Income calculation (Col I + Col P)
+            totalOtherAmt = Val(wsData.Cells(i, 9).Value) + Val(wsData.Cells(i, 16).Value)
+            
+            If ExpDetails <> "" Then
+                ' Expenses sum mapping
+                dictDetails(ExpDetails) = dictDetails(ExpDetails) + totalAmt
+                grandTotalExp = grandTotalExp + totalAmt
+                
+                ' Other Income sum mapping (usi details ke saamne)
+                dictOtherDetails(ExpDetails) = dictOtherDetails(ExpDetails) + totalOtherAmt
+                grandTotalOther = grandTotalOther + totalOtherAmt
+            End If
+        End If
+    Next i
+    
+    If dictDetails.Count > 0 Then
+        Dim key As Variant, rNum As Long
+        rNum = 2
+        For Each key In dictDetails.Keys
+            wsSummary.Cells(rNum, 7).Value = key               ' Column G: Details
+            wsSummary.Cells(rNum, 8).Value = dictDetails(key)    ' Column H: Expenses
+            wsSummary.Cells(rNum, 9).Value = dictOtherDetails(key) ' Column I: Other Income
+            rNum = rNum + 1
+        Next key
+        
+        ' GRAND TOTAL Line
+        wsSummary.Cells(rNum, 7).Value = "GRAND TOTAL"
+        wsSummary.Cells(rNum, 8).Value = grandTotalExp
+        wsSummary.Cells(rNum, 9).Value = grandTotalOther
+        wsSummary.Range("G" & rNum & ":I" & rNum).Font.Bold = True
+    End If
+    Exit Sub
+ErrorHandler:
+    MsgBox "Error in Category Search: " & Err.Description
+End Sub
+
+
+

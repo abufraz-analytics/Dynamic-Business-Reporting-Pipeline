@@ -1,0 +1,149 @@
+Private Sub Worksheet_Change(ByVal Target As Range)
+    ' Sirf Cell A2 monitor karne ke liye
+    If Not Intersect(Target, Me.Range("A2")) Is Nothing Then
+        Application.EnableEvents = False
+        On Error Resume Next
+        Call ExecuteDynamicSearch
+        Application.EnableEvents = True
+    End If
+End Sub
+
+Sub ExecuteDynamicSearch()
+    Dim wsData As Worksheet, wsRes As Worksheet
+    Dim lastRow As Long, i As Long, rowNum As Long
+    Dim searchVal As String, currentCat As String, currentCust As String
+    Dim isCategorySearch As Boolean
+    Dim dict As Object, key As Variant
+    Dim categories As Variant
+    
+    ' Settings
+    Set wsData = ThisWorkbook.Sheets("DAILY TRANSACTION WITHOUT BILL")
+    Set wsRes = ThisWorkbook.Sheets("WITHOUT_BILL_SEARCH_ROOM")
+    searchVal = Trim(wsRes.Range("A2").Value)
+    
+    If searchVal = "" Then
+        ' Agar A2 khali hai toh niche ka data saaf kar do
+        wsRes.Range("A3:I" & wsRes.Rows.Count).ClearContents
+        Exit Sub
+    End If
+    
+    ' Category List
+    categories = Array("SALES", "PURCHASE", "RECEIPT", "PAYMENT", "SALES RETURN", "METAL PAYMENT", "METAL RECEIPT")
+    isCategorySearch = False
+    For i = LBound(categories) To UBound(categories)
+        If UCase(searchVal) = UCase(categories(i)) Then
+            isCategorySearch = True
+            Exit For
+        End If
+    Next i
+
+    ' 1. Cleaning & Heading Setup (A2 ko safe rakhte hue)
+    wsRes.Range("A1:I1").ClearContents
+    wsRes.Range("A3:I" & wsRes.Rows.Count).ClearContents
+    wsRes.Range("A1:I" & wsRes.Rows.Count).Font.Bold = False
+    wsRes.Range("A1:I1").Font.Bold = True
+    
+    ' Dynamic Heading Placement (Row 1)
+    If isCategorySearch Then
+        wsRes.Range("A1:I1").Value = Array("CATEGORY", "CUSTOMER NAME", "GROSS W/T", "PURE W/T", "MAKING AMT", "MAKING CASH RCVD", "MAKING CHQ RCVD", "PUR. MAK. CASH PMT", "PUR. MAK. CHQ PMT")
+    Else
+        wsRes.Range("A1:I1").Value = Array("CUSTOMER NAME", "CATEGORY", "GROSS W/T", "PURE W/T", "MAKING AMT", "MAKING CASH RCVD", "MAKING CHQ RCVD", "PUR. MAK. CASH PMT", "PUR. MAK. CHQ PMT")
+    End If
+
+    ' 2. Data Processing
+    Set dict = CreateObject("Scripting.Dictionary")
+    lastRow = wsData.Cells(wsData.Rows.Count, "B").End(xlUp).Row
+    
+    For i = 2 To lastRow
+        currentCat = UCase(Trim(wsData.Cells(i, 2).Value))
+        currentCust = UCase(Trim(wsData.Cells(i, 3).Value))
+        
+        Dim matchFound As Boolean: matchFound = False
+        
+        If isCategorySearch Then
+            If currentCat = UCase(searchVal) Then matchFound = True: key = currentCust
+        Else
+            If currentCust = UCase(searchVal) Then matchFound = True: key = currentCat
+        End If
+        
+        If matchFound Then
+            If Not dict.Exists(key) Then
+                dict.Add key, Array(0#, 0#, 0#, 0#, 0#, 0#, 0#)
+            End If
+            
+            Dim vals As Variant
+            vals = dict(key)
+            vals(0) = vals(0) + Val(wsData.Cells(i, 4).Value)   ' Gross W/T
+            vals(1) = vals(1) + Val(wsData.Cells(i, 6).Value)   ' Pure W/T
+            vals(2) = vals(2) + Val(wsData.Cells(i, 8).Value)   ' Making Amt
+            vals(3) = vals(3) + Val(wsData.Cells(i, 21).Value)  ' MAKING CASH RCVD
+            vals(4) = vals(4) + Val(wsData.Cells(i, 22).Value)  ' MAKING CHQ RCVD
+            vals(5) = vals(5) + Val(wsData.Cells(i, 23).Value)  ' PUR. MAK. CASH PMT
+            vals(6) = vals(6) + Val(wsData.Cells(i, 24).Value)  ' PUR MAK CHQ PMT
+            dict(key) = vals
+        End If
+    Next i
+
+    ' 3. Printing Result (Row 3 se shuru)
+    rowNum = 3
+    Dim netGross As Double, netPure As Double, netMaking As Double
+    Dim sumCashR As Double, sumChqR As Double, sumPCash As Double, sumPChq As Double
+    
+    For Each key In dict.Keys
+        Dim dVals As Variant
+        dVals = dict(key)
+        
+        ' Sirf Column B (Index 2) mein key print karenge.
+        ' Column A (A3, A4...) ko hamesha khali rakhenge taaki sirf A2 dikhe.
+        wsRes.Cells(rowNum, 2).Value = key
+        
+        ' Baki amounts fill karna
+        wsRes.Range(wsRes.Cells(rowNum, 3), wsRes.Cells(rowNum, 9)).Value = dVals
+        
+        ' Calculation Logic (Same as before)
+        Dim catType As String
+        catType = IIf(isCategorySearch, UCase(searchVal), UCase(key))
+        
+        Dim weightMult As Integer: weightMult = 0
+        Dim makingMult As Integer: makingMult = 0
+        
+        Select Case catType
+            Case "SALES", "METAL PAYMENT": weightMult = 1: makingMult = 1
+            Case "PURCHASE", "SALES RETURN": weightMult = -1: makingMult = -1
+            Case Else: weightMult = 0: makingMult = 0
+        End Select
+        
+        If isCategorySearch Then
+            netGross = netGross + dVals(0): netPure = netPure + dVals(1): netMaking = netMaking + dVals(2)
+        Else
+            netGross = netGross + (dVals(0) * weightMult)
+            netPure = netPure + (dVals(1) * weightMult)
+            netMaking = netMaking + (dVals(2) * makingMult)
+        End If
+        
+        sumCashR = sumCashR + dVals(3): sumChqR = sumChqR + dVals(4)
+        sumPCash = sumPCash + dVals(5): sumPChq = sumPChq + dVals(6)
+        
+        rowNum = rowNum + 1
+    Next key
+
+    ' 4. Grand Total
+    If dict.Count > 0 Then
+        wsRes.Cells(rowNum, 2).Value = "GRAND TOTAL"
+        wsRes.Cells(rowNum, 3).Value = netGross
+        wsRes.Cells(rowNum, 4).Value = netPure
+        wsRes.Cells(rowNum, 5).Value = netMaking
+        wsRes.Cells(rowNum, 6).Value = sumCashR
+        wsRes.Cells(rowNum, 7).Value = sumChqR
+        wsRes.Cells(rowNum, 8).Value = sumPCash
+        wsRes.Cells(rowNum, 9).Value = sumPChq
+        wsRes.Range("A" & rowNum & ":I" & rowNum).Font.Bold = True
+        wsRes.Columns("A:I").AutoFit
+    Else
+        MsgBox "No data found for: " & searchVal, vbInformation
+    End If
+End Sub
+
+
+
+

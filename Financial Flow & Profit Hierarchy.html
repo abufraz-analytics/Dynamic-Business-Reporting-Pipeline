@@ -1,0 +1,1843 @@
+<!DOCTYPE html>
+<!-- saved from url=(0033)http://127.0.0.1:5500/PROFIT.HTML -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <title>Financial Flow &amp; Profit Hierarchy</title>
+  <style>
+    :root {
+      --bg-main: #090e1a;
+      --bg-card: #131c31;
+      --bg-card-hover: #1a2744;
+      --bg-drawer: #0d1424;
+      --border-subtle: #233252;
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --gold: #f59e0b;
+      --gold-glow: rgba(245, 158, 11, 0.22);
+      --red: #ef4444;
+      --red-glow: rgba(239, 68, 68, 0.2);
+      --green: #10b981;
+      --green-glow: rgba(16, 185, 129, 0.22);
+      --blue: #38bdf8;
+      --blue-glow: rgba(56, 189, 248, 0.2);
+      --line-color: #475569;
+      --card-w: 235px;
+      --col-gap: 32px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg-main);
+      background-image:
+        radial-gradient(circle at 50% 0%, rgba(245, 158, 11, 0.09), transparent 45%),
+        radial-gradient(circle at 85% 30%, rgba(16, 185, 129, 0.07), transparent 40%);
+      color: var(--text-primary);
+      min-height: 100vh;
+      padding: 20px 16px 80px;
+      overflow-x: hidden;
+    }
+
+    /* Sticky Glass Header */
+    .header-bar {
+      max-width: 1200px;
+      margin: 0 auto 20px;
+      padding: 14px 18px;
+      background: rgba(19, 28, 49, 0.88);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--border-subtle);
+      border-radius: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      position: sticky;
+      top: 12px;
+      z-index: 90;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    }
+
+    .header-title-wrap h1 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      color: var(--text-primary);
+    }
+
+    .header-title-wrap h1 span {
+      color: var(--gold);
+    }
+
+    .header-title-wrap p {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+
+    .controls {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .btn-ctrl {
+      background: #0f172a;
+      color: var(--text-primary);
+      border: 1px solid var(--border-subtle);
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-ctrl:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--gold);
+      color: var(--gold);
+    }
+
+    .btn-ctrl.primary {
+      background: rgba(16, 185, 129, 0.14);
+      border-color: rgba(16, 185, 129, 0.45);
+      color: #34d399;
+    }
+
+    .btn-ctrl.primary:hover {
+      background: rgba(16, 185, 129, 0.24);
+    }
+
+    /* Quick KPI Overview Strip */
+    .kpi-strip {
+      max-width: 1200px;
+      margin: 0 auto 28px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+
+    .kpi-mini {
+      background: rgba(19, 28, 49, 0.65);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 12px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .kpi-mini span {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--text-secondary);
+      font-weight: 600;
+    }
+
+    .kpi-mini strong {
+      font-size: 1.05rem;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Main Tree Canvas */
+    .tree-viewport {
+      width: 100%;
+      padding: 6px 4px 40px;
+    }
+
+    .tree-canvas {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    /* Node Cards */
+    .node-card {
+      background: var(--bg-card);
+      border: 1.5px solid var(--border-subtle);
+      border-radius: 14px;
+      padding: 14px 18px;
+      width: var(--card-w);
+      max-width: 100%;
+      text-align: center;
+      cursor: pointer;
+      user-select: none;
+      position: relative;
+      transition: transform 0.18s ease, box-shadow 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+      box-shadow: 0 8px 22px rgba(0, 0, 0, 0.35);
+    }
+
+    .node-card:hover {
+      transform: translateY(-2px);
+      background: var(--bg-card-hover);
+    }
+
+    .node-card:active {
+      transform: scale(0.985);
+    }
+
+    .node-card .badge {
+      display: inline-block;
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      padding: 3px 9px;
+      border-radius: 99px;
+      margin-bottom: 6px;
+      font-weight: 700;
+    }
+
+    .node-card .title {
+      font-size: 0.84rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      color: var(--text-secondary);
+      margin-bottom: 4px;
+    }
+
+    .node-card .amount {
+      font-size: 1.24rem;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0.3px;
+    }
+
+    .node-card .hint {
+      margin-top: 7px;
+      font-size: 0.71rem;
+      color: var(--text-secondary);
+      opacity: 0.9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+    }
+
+    .chevron {
+      display: inline-block;
+      transition: transform 0.25s ease;
+      font-size: 0.68rem;
+    }
+
+    .node-card.active .chevron {
+      transform: rotate(180deg);
+    }
+
+    .node-card.active {
+      outline: 2px solid rgba(255, 255, 255, 0.22);
+    }
+
+    /* Color Variants */
+    .card-sales {
+      border-color: rgba(245, 158, 11, 0.55);
+      box-shadow: 0 8px 28px var(--gold-glow);
+      width: 290px;
+    }
+    .card-sales .badge { background: rgba(245, 158, 11, 0.16); color: var(--gold); }
+    .card-sales .amount { color: var(--gold); font-size: 1.5rem; }
+
+    .card-expense {
+      border-color: rgba(239, 68, 68, 0.5);
+      box-shadow: 0 8px 24px var(--red-glow);
+    }
+    .card-expense .badge { background: rgba(239, 68, 68, 0.16); color: #f87171; }
+    .card-expense .amount { color: #f87171; }
+
+    .card-profit {
+      border-color: rgba(16, 185, 129, 0.55);
+      box-shadow: 0 8px 24px var(--green-glow);
+    }
+    .card-profit .badge { background: rgba(16, 185, 129, 0.16); color: #34d399; }
+    .card-profit .amount { color: #34d399; }
+
+    .card-market {
+      border-color: rgba(56, 189, 248, 0.5);
+      box-shadow: 0 8px 24px var(--blue-glow);
+    }
+    .card-market .badge { background: rgba(56, 189, 248, 0.16); color: var(--blue); }
+    .card-market .amount { color: #7dd3fc; }
+
+    .card-inhand {
+      border-color: rgba(16, 185, 129, 0.48);
+    }
+    .card-inhand .badge { background: rgba(16, 185, 129, 0.14); color: #34d399; }
+    .card-inhand .amount { color: #6ee7b7; }
+
+    .card-deduction {
+      border-color: rgba(245, 158, 11, 0.42);
+      cursor: default;
+    }
+    .card-deduction:hover { transform: none; background: var(--bg-card); }
+    .card-deduction .badge { background: rgba(245, 158, 11, 0.14); color: #fbbf24; }
+    .card-deduction .amount { color: #fcd34d; font-size: 1.15rem; }
+
+    .card-final {
+      border: 2px solid var(--green);
+      background: linear-gradient(145deg, #102a27, #131c31);
+      box-shadow: 0 0 28px rgba(16, 185, 129, 0.32);
+      cursor: default;
+    }
+    .card-final:hover { transform: none; }
+    .card-final .badge { background: var(--green); color: #052e16; }
+    .card-final .amount { color: #34d399; font-size: 1.34rem; }
+
+    /* Top Level Connectors (Sales -> Expenses & Profit) */
+    .v-line {
+      width: 2px;
+      height: 22px;
+      background: var(--line-color);
+      margin: 0 auto;
+    }
+
+    .top-branch-wrapper {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 48px;
+      position: relative;
+      padding-top: 22px;
+    }
+
+    .top-branch-wrapper::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: calc(var(--card-w) + 48px);
+      height: 2px;
+      background: var(--line-color);
+    }
+
+    .top-branch-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+
+    .top-branch-col::before {
+      content: '';
+      position: absolute;
+      top: -22px;
+      left: 50%;
+      width: 2px;
+      height: 22px;
+      background: var(--line-color);
+    }
+
+    /* ============================================================
+       SAME-LINE 2-COLUMN STACK (EXACTLY LIKE YOUR DRAWING)
+       Left Column  = IN MARKET, then Deduction 1..7 directly below
+       Right Column = IN HAND (1.98M), then Remaining IN HAND 1..7 directly below
+       ============================================================ */
+    .profit-flow-container {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      animation: fadeSlideDown 0.22s ease forwards;
+    }
+
+    .profit-flow-container.open {
+      display: flex;
+    }
+
+    /* Fixed 2-column grid so every single step stays in the exact same vertical line */
+    .aligned-pair {
+      display: grid;
+      grid-template-columns: var(--card-w) var(--card-w);
+      gap: var(--col-gap);
+      justify-content: center;
+      align-items: stretch;
+      position: relative;
+      padding-top: 20px;
+    }
+
+    /* Horizontal line spanning from center of Left card to center of Right card */
+    .aligned-pair::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: calc(var(--card-w) / 2);
+      right: calc(var(--card-w) / 2);
+      height: 2px;
+      background: var(--line-color);
+    }
+
+    .aligned-cell {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+
+    /* Vertical drops into Left and Right cards */
+    .aligned-cell::before {
+      content: '';
+      position: absolute;
+      top: -20px;
+      left: 50%;
+      width: 2px;
+      height: 20px;
+      background: var(--line-color);
+    }
+
+    /* Vertical line dropping from the RIGHT card (IN HAND) to the next step's horizontal bar */
+    .right-stem-row {
+      display: grid;
+      grid-template-columns: var(--card-w) var(--card-w);
+      gap: var(--col-gap);
+      justify-content: center;
+    }
+
+    .right-stem-cell {
+      display: flex;
+      justify-content: center;
+    }
+
+    .right-stem-line {
+      width: 2px;
+      height: 20px;
+      background: var(--line-color);
+    }
+
+    /* Collapsible wrapper for each step row */
+    .step-row-wrap {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      animation: fadeSlideDown 0.22s ease forwards;
+    }
+
+    .step-row-wrap.open {
+      display: flex;
+    }
+
+    @keyframes fadeSlideDown {
+      from { opacity: 0; transform: translateY(-6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ============================================================
+       FLOATING / OVERLAPPING TABLE DRAWER (OVERLAYS OVER TREE)
+       ============================================================ */
+    .float-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(4, 8, 16, 0.65);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      z-index: 200;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+      animation: fadeInOverlay 0.18s ease forwards;
+    }
+
+    .float-backdrop.open {
+      display: flex;
+    }
+
+    @keyframes fadeInOverlay {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .table-drawer {
+      background: var(--bg-drawer);
+      border: 1.5px solid var(--border-subtle);
+      border-radius: 16px;
+      width: 450px;
+      max-width: 100%;
+      max-height: 82vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.78);
+      animation: popDrawer 0.2s ease forwards;
+    }
+
+    @keyframes popDrawer {
+      from { opacity: 0; transform: scale(0.95) translateY(8px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .drawer-header {
+      padding: 14px 16px;
+      background: #16213a;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .drawer-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .drawer-meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.74rem;
+      color: var(--text-secondary);
+    }
+
+    .btn-close-drawer {
+      background: rgba(239, 68, 68, 0.16);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.35);
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .btn-close-drawer:hover {
+      background: rgba(239, 68, 68, 0.28);
+    }
+
+    .drawer-tools {
+      display: flex;
+      gap: 8px;
+    }
+
+    .search-input {
+      flex: 1;
+      padding: 8px 11px;
+      border-radius: 8px;
+      border: 1px solid var(--border-subtle);
+      background: #090e1a;
+      color: var(--text-primary);
+      font-size: 0.82rem;
+      outline: none;
+    }
+
+    .search-input:focus {
+      border-color: var(--gold);
+    }
+
+    .sort-select {
+      padding: 8px 9px;
+      border-radius: 8px;
+      border: 1px solid var(--border-subtle);
+      background: #090e1a;
+      color: var(--text-secondary);
+      font-size: 0.76rem;
+      font-weight: 600;
+      cursor: pointer;
+      outline: none;
+    }
+
+    .sort-select:focus {
+      border-color: var(--gold);
+      color: var(--text-primary);
+    }
+
+    .table-scroll {
+      overflow-y: auto;
+      flex: 1;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .table-scroll::-webkit-scrollbar {
+      width: 6px;
+    }
+    .table-scroll::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 4px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+    }
+
+    td {
+      padding: 9px 16px;
+      border-bottom: 1px solid rgba(35, 50, 82, 0.55);
+    }
+
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    td.name-col {
+      color: #e2e8f0;
+      font-weight: 500;
+      text-align: left;
+      word-break: break-word;
+    }
+
+    td.val-col {
+      text-align: right;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      color: #93c5fd;
+      white-space: nowrap;
+    }
+
+    td.val-neg { color: #f87171; }
+    td.val-zero { color: #64748b; }
+
+    .drawer-footer {
+      padding: 10px 16px;
+      background: #121b30;
+      border-top: 1px solid var(--border-subtle);
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--text-secondary);
+    }
+
+    .drawer-footer span:last-child {
+      color: var(--gold);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ============================================================
+       MOBILE & TABLET RESPONSIVE (<= 768px)
+       ============================================================ */
+    @media (max-width: 768px) {
+      :root {
+        --card-w: calc(50vw - 20px);
+        --col-gap: 12px;
+      }
+
+      body {
+        padding: 12px 10px 60px;
+      }
+
+      .header-bar {
+        position: static;
+        padding: 12px 14px;
+        margin-bottom: 14px;
+      }
+
+      .header-title-wrap h1 {
+        font-size: 1.05rem;
+      }
+
+      .controls {
+        width: 100%;
+      }
+
+      .btn-ctrl {
+        flex: 1;
+        text-align: center;
+        padding: 8px 10px;
+      }
+
+      .kpi-strip {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+        margin-bottom: 18px;
+      }
+
+      .card-sales {
+        width: 100%;
+      }
+
+      .card-sales .amount {
+        font-size: 1.3rem;
+      }
+
+      .node-card {
+        padding: 11px 8px;
+        border-radius: 12px;
+      }
+
+      .node-card .title {
+        font-size: 0.72rem;
+      }
+
+      .node-card .amount,
+      .card-deduction .amount,
+      .card-final .amount {
+        font-size: 0.96rem;
+      }
+
+      .node-card .hint {
+        font-size: 0.64rem;
+      }
+
+      .top-branch-wrapper {
+        gap: var(--col-gap);
+        padding-top: 18px;
+      }
+
+      .top-branch-wrapper::before {
+        width: calc(var(--card-w) + var(--col-gap));
+      }
+
+      .top-branch-col::before {
+        top: -18px;
+        height: 18px;
+      }
+
+      td {
+        padding: 8px 12px;
+        font-size: 0.78rem;
+      }
+    }
+
+    @media (max-width: 400px) {
+      .kpi-mini {
+        padding: 9px 10px;
+      }
+      .kpi-mini strong {
+        font-size: 0.9rem;
+      }
+      .node-card .amount,
+      .card-deduction .amount,
+      .card-final .amount {
+        font-size: 0.88rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header-bar">
+    <div class="header-title-wrap">
+      <h1>📊 Financial Hierarchy <span>&amp; Cash Flow Explorer</span></h1>
+      <p>Tap any card to expand straight down or view floating breakdown</p>
+    </div>
+    <div class="controls">
+      <button class="btn-ctrl primary" onclick="expandCashFlow()">Expand Full Flow</button>
+      <button class="btn-ctrl" onclick="collapseAll()">Reset / Collapse All</button>
+    </div>
+  </div>
+
+  <!-- Quick Overview Strip -->
+  <div class="kpi-strip">
+    <div class="kpi-mini">
+      <span>Gross Sales Making</span>
+      <strong style="color: var(--gold);">7,492,273.83</strong>
+    </div>
+    <div class="kpi-mini">
+      <span>Total Expenses</span>
+      <strong style="color: #f87171;">4,464,288.99</strong>
+    </div>
+    <div class="kpi-mini">
+      <span>Total Net Profit</span>
+      <strong style="color: #34d399;">3,027,984.85</strong>
+    </div>
+    <div class="kpi-mini">
+      <span>Final Closing In-Hand</span>
+      <strong style="color: #6ee7b7;">401,423.94</strong>
+    </div>
+  </div>
+
+  <div class="tree-viewport">
+    <div class="tree-canvas">
+
+      <!-- LEVEL 1: TOP CENTER - TOTAL SALES MAKING -->
+      <div class="node-card card-sales" id="btn-sales" onclick="openFloatingDrawer('sales', 'btn-sales')">
+        <div class="badge">Gross Revenue</div>
+        <div class="title">TOTAL SALES MAKING</div>
+        <div class="amount">7,492,273.83</div>
+        <div class="hint">Tap to view 63 Customers <span class="chevron">▼</span></div>
+      </div>
+
+      <div class="v-line"></div>
+
+      <!-- LEVEL 2: LEFT (EXPENSES) & RIGHT (PROFIT) -->
+      <div class="top-branch-wrapper">
+
+        <!-- LEFT BRANCH: TOTAL EXPENSES -->
+        <div class="top-branch-col">
+          <div class="node-card card-expense" id="btn-exp" onclick="openFloatingDrawer('exp', 'btn-exp')">
+            <div class="badge">Total Outflow</div>
+            <div class="title">TOTAL EXPENSES</div>
+            <div class="amount">4,464,288.99</div>
+            <div class="hint">Tap to view 50 Expenses <span class="chevron">▼</span></div>
+          </div>
+        </div>
+
+        <!-- RIGHT BRANCH: TOTAL PROFIT -->
+        <div class="top-branch-col">
+          <div class="node-card card-profit" id="btn-profit" onclick="toggleProfitSplit()">
+            <div class="badge">Net Surplus</div>
+            <div class="title">TOTAL PROFIT</div>
+            <div class="amount">3,027,984.85</div>
+            <div class="hint">Tap to split Market vs In-Hand <span class="chevron">▼</span></div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- LEVEL 3+: SAME-LINE 2-COLUMN STACK DIRECTLY BELOW -->
+      <div class="profit-flow-container" id="profit-panel">
+        <div class="v-line"></div>
+
+        <!-- Row 0: IN MARKET (Left) & IN HAND 1,982,527.01 (Right) -->
+        <div class="aligned-pair">
+          <div class="aligned-cell">
+            <div class="node-card card-market" id="btn-market" onclick="openFloatingDrawer('market', 'btn-market')">
+              <div class="badge">Receivables</div>
+              <div class="title">IN MARKET</div>
+              <div class="amount">1,045,457.84</div>
+              <div class="hint">Tap to view Market Cash <span class="chevron">▼</span></div>
+            </div>
+          </div>
+
+          <div class="aligned-cell">
+            <div class="node-card card-inhand" id="btn-ih1" onclick="toggleCascadeStep(1)">
+              <div class="badge">Available Cash</div>
+              <div class="title">IN HAND</div>
+              <div class="amount">1,982,527.01</div>
+              <div class="hint">Tap for next allocation <span class="chevron">▼</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Steps 1 to 7 render directly underneath in the exact same 2 columns -->
+        <div id="cascade-mount">
+          <div class="step-row-wrap" id="step-row-1">
+            <!-- Vertical stem dropping directly from the right-side IN HAND card above -->
+            <div class="right-stem-row">
+              <div></div>
+              <div class="right-stem-cell">
+                <div class="right-stem-line"></div>
+              </div>
+            </div>
+
+            <!-- Horizontal T-split into Left (Deduction) & Right (Remaining IN HAND) in the EXACT same column alignment -->
+            <div class="aligned-pair">
+              <div class="aligned-cell">
+                <div class="node-card card-deduction">
+                  <div class="badge">Deduction 1</div>
+                  <div class="title">GOLD PURCHA.</div>
+                  <div class="amount">953,747.47</div>
+                </div>
+              </div>
+              <div class="aligned-cell">
+                
+            <div class="node-card card-inhand" id="btn-ih2" onclick="toggleCascadeStep(2)">
+              <div class="badge">Remaining</div>
+              <div class="title">IN HAND</div>
+              <div class="amount">1,028,779.54</div>
+              <div class="hint">Tap to expand <span class="chevron">▼</span></div>
+            </div>
+          
+              </div>
+            </div>
+          </div>
+        
+          <div class="step-row-wrap" id="step-row-2">
+            <!-- Vertical stem dropping directly from the right-side IN HAND card above -->
+            <div class="right-stem-row">
+              <div></div>
+              <div class="right-stem-cell">
+                <div class="right-stem-line"></div>
+              </div>
+            </div>
+
+            <!-- Horizontal T-split into Left (Deduction) & Right (Remaining IN HAND) in the EXACT same column alignment -->
+            <div class="aligned-pair">
+              <div class="aligned-cell">
+                <div class="node-card card-deduction">
+                  <div class="badge">Deduction 2</div>
+                  <div class="title">ADVANCE</div>
+                  <div class="amount">6,720.00</div>
+                </div>
+              </div>
+              <div class="aligned-cell">
+                
+            <div class="node-card card-inhand" id="btn-ih3" onclick="toggleCascadeStep(3)">
+              <div class="badge">Remaining</div>
+              <div class="title">IN HAND</div>
+              <div class="amount">1,022,059.54</div>
+              <div class="hint">Tap to expand <span class="chevron">▼</span></div>
+            </div>
+          
+              </div>
+            </div>
+          </div>
+        
+          <div class="step-row-wrap" id="step-row-3">
+            <!-- Vertical stem dropping directly from the right-side IN HAND card above -->
+            <div class="right-stem-row">
+              <div></div>
+              <div class="right-stem-cell">
+                <div class="right-stem-line"></div>
+              </div>
+            </div>
+
+            <!-- Horizontal T-split into Left (Deduction) & Right (Remaining IN HAND) in the EXACT same column alignment -->
+            <div class="aligned-pair">
+              <div class="aligned-cell">
+                <div class="node-card card-deduction">
+                  <div class="badge">Deduction 3</div>
+                  <div class="title">FAZEL BHAI</div>
+                  <div class="amount">241,328.03</div>
+                </div>
+              </div>
+              <div class="aligned-cell">
+                
+            <div class="node-card card-inhand" id="btn-ih4" onclick="toggleCascadeStep(4)">
+              <div class="badge">Remaining</div>
+              <div class="title">IN HAND</div>
+              <div class="amount">780,731.51</div>
+              <div class="hint">Tap to expand <span class="chevron">▼</span></div>
+            </div>
+          
+              </div>
+            </div>
+          </div>
+        
+          <div class="step-row-wrap" id="step-row-4">
+            <!-- Vertical stem dropping directly from the right-side IN HAND card above -->
+            <div class="right-stem-row">
+              <div></div>
+              <div class="right-stem-cell">
+                <div class="right-stem-line"></div>
+              </div>
+            </div>
+
+            <!-- Horizontal T-split into Left (Deduction) & Right (Remaining IN HAND) in the EXACT same column alignment -->
+            <div class="aligned-pair">
+              <div class="aligned-cell">
+                <div class="node-card card-deduction">
+                  <div class="badge">Deduction 4</div>
+                  <div class="title">ZAHEER BHAI</div>
+                  <div class="amount">226,192.19</div>
+                </div>
+              </div>
+              <div class="aligned-cell">
+                
+            <div class="node-card card-inhand" id="btn-ih5" onclick="toggleCascadeStep(5)">
+              <div class="badge">Remaining</div>
+              <div class="title">IN HAND</div>
+              <div class="amount">554,539.32</div>
+              <div class="hint">Tap to expand <span class="chevron">▼</span></div>
+            </div>
+          
+              </div>
+            </div>
+          </div>
+        
+          <div class="step-row-wrap" id="step-row-5">
+            <!-- Vertical stem dropping directly from the right-side IN HAND card above -->
+            <div class="right-stem-row">
+              <div></div>
+              <div class="right-stem-cell">
+                <div class="right-stem-line"></div>
+              </div>
+            </div>
+
+            <!-- Horizontal T-split into Left (Deduction) & Right (Remaining IN HAND) in the EXACT same column alignment -->
+            <div class="aligned-pair">
+              <div class="aligned-cell">
+                <div class="node-card card-deduction">
+                  <div class="badge">Deduction 5</div>
+                  <div class="title">HEKMAT BHAI</div>
+                  <div class="amount">65,686.77</div>
+                </div>
+              </div>
+              <div class="aligned-cell">
+                
+            <div class="node-card card-inhand" id="btn-ih6" onclick="toggleCascadeStep(6)">
+              <div class="badge">Remaining</div>
+              <div class="title">IN HAND</div>
+              <div class="amount">488,852.55</div>
+              <div class="hint">Tap to expand <span class="chevron">▼</span></div>
+            </div>
+          
+              </div>
+            </div>
+          </div>
+        
+          <div class="step-row-wrap" id="step-row-6">
+            <!-- Vertical stem dropping directly from the right-side IN HAND card above -->
+            <div class="right-stem-row">
+              <div></div>
+              <div class="right-stem-cell">
+                <div class="right-stem-line"></div>
+              </div>
+            </div>
+
+            <!-- Horizontal T-split into Left (Deduction) & Right (Remaining IN HAND) in the EXACT same column alignment -->
+            <div class="aligned-pair">
+              <div class="aligned-cell">
+                <div class="node-card card-deduction">
+                  <div class="badge">Deduction 6</div>
+                  <div class="title">MUSTAFA BHAI</div>
+                  <div class="amount">5,007.52</div>
+                </div>
+              </div>
+              <div class="aligned-cell">
+                
+            <div class="node-card card-inhand" id="btn-ih7" onclick="toggleCascadeStep(7)">
+              <div class="badge">Remaining</div>
+              <div class="title">IN HAND</div>
+              <div class="amount">483,845.03</div>
+              <div class="hint">Tap for final step <span class="chevron">▼</span></div>
+            </div>
+          
+              </div>
+            </div>
+          </div>
+        
+          <div class="step-row-wrap" id="step-row-7">
+            <!-- Vertical stem dropping directly from the right-side IN HAND card above -->
+            <div class="right-stem-row">
+              <div></div>
+              <div class="right-stem-cell">
+                <div class="right-stem-line"></div>
+              </div>
+            </div>
+
+            <!-- Horizontal T-split into Left (Deduction) & Right (Remaining IN HAND) in the EXACT same column alignment -->
+            <div class="aligned-pair">
+              <div class="aligned-cell">
+                <div class="node-card card-deduction">
+                  <div class="badge">Deduction 7</div>
+                  <div class="title">MACHINERY</div>
+                  <div class="amount">82,421.09</div>
+                </div>
+              </div>
+              <div class="aligned-cell">
+                
+            <div class="node-card card-final">
+              <div class="badge">Final Closing Balance</div>
+              <div class="title">IN HAND</div>
+              <div class="amount">401,423.94</div>
+            </div>
+          
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- FLOATING / OVERLAPPING TABLE DRAWER (OVERLAYS OVER EVERYTHING) -->
+  <div class="float-backdrop" id="float-backdrop" onclick="handleBackdropClick(event)">
+    <div class="table-drawer" role="dialog" aria-modal="true">
+      <div class="drawer-header">
+        <div class="drawer-top">
+          <span id="drawer-title">CUSTOMER MAKING BREAKDOWN</span>
+          <div class="drawer-meta">
+            <span id="drawer-count">63 Accounts</span>
+            <button class="btn-close-drawer" onclick="closeFloatingDrawer()">✕ Close</button>
+          </div>
+        </div>
+        <div class="drawer-tools">
+          <input type="text" class="search-input" id="drawer-search" placeholder="Search name..." oninput="renderActiveDrawer()">
+          <select class="sort-select" id="drawer-sort" onchange="renderActiveDrawer()">
+            <option value="default">Default</option>
+            <option value="desc">High → Low</option>
+            <option value="asc">Low → High</option>
+            <option value="alpha">A → Z</option>
+          </select>
+        </div>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <tbody id="drawer-tbody">
+            <tr>
+              <td class="name-col">AL SAYYEDA JEWELLERY</td>
+              <td class="val-col">2,522,744.03</td>
+            </tr>
+          
+            <tr>
+              <td class="name-col">PARI W/B</td>
+              <td class="val-col">1,173,539.80</td>
+            </tr>
+          
+            <tr>
+              <td class="name-col">AL GHADBAN JEWELLERY LLC</td>
+              <td class="val-col">445,788.93</td>
+            </tr>
+          
+            <tr>
+              <td class="name-col">ANVAR LUXURY JEWELLERY</td>
+              <td class="val-col">381,953.47</td>
+            </tr>
+          
+            <tr>
+              <td class="name-col">NAWAEM GOLD JEWELLERY LLC</td>
+              <td class="val-col">284,118.78</td>
+            </tr>
+          
+            <tr>
+              <td class="name-col">AL YAQEEN JEWELLERY L.L.C</td>
+              <td class="val-col">282,423.35</td>
+            </tr>
+          
+            <tr>
+              <td class="name-col">ISAM SHARRAD JEWELLERY LLC</td>
+              <td class="val-col">255,687.20</td>
+            </tr>
+          
+            <tr>
+              <td class="name-col">TOBACTOS JEWELLERY L.L.C</td>
+              <td class="val-col">181,559.66</td>
+            </tr>
+          
+            <tr>
+              <td class="name-col">AL WED JEWELLERY LLC</td>
+              <td class="val-col">151,893.84</td>
+            </tr>
+          
+            <tr>
+              <td class="name-col">GOLDEN ROSE JEWELLERY CO LLC</td>
+              <td class="val-col">149,267.09</td>
+            </tr>
+          
+            <tr>
+              <td class="name-col">SOMER JEWELLERY</td>
+              <td class="val-col">145,824.65</td>
+            </tr>
+          
+            <tr>
+              <td class="name-col">GOLDEN ROSE JEWELLERY (H.O.)</td>
+              <td class="val-col">124,366.85</td>
+            </tr>
+          
+            <tr>
+              <td class="name-col">SAHI JEWELLERY LLC</td>
+              <td class="val-col">103,998.51</td>
+            </tr>
+          
+            <tr>
+              <td class="name-col">YAQEEN 2 W/B</td>
+              <td class="val-col">84,426.25</td>
+            </tr>
+          
+            <tr>
+              <td class="name-col">AL AKSA JEWELLERS L.L.C</td>
+              <td class="val-col">81,967.10</td>
+            </tr>
+          
+            <tr>
+              <td class="name-col">AL DURRA JEWELLERY</td>
+              <td class="val-col">81,119.10</td>
+            </tr>
+          
+            <tr>
+              <td class="name-col">MIDER W/B</td>
+              <td class="val-col">80,283.66</td>
+            </tr>
+          
+            <tr>
+              <td class="name-col">ZAHRAT ALNAQASH JEWELLERY</td>
+              <td class="val-col">77,187.00</td>
+            </tr>
+          
+            <tr>
+              <td class="name-col">KUL AL AQMAR JEWELLERY LLC</td>
+              <td class="val-col">73,035.40</td>
+            </tr>
+          
+            <tr>
+              <td class="name-col">AMOLITE W/B</td>
+              <td class="val-col">69,119.79</td>
+            </tr>
+          
+            <tr>
+              <td class="name-col">AL BASRA JEWELLERY L.L.C</td>
+              <td class="val-col">67,478.50</td>
+            </tr>
+          
+            <tr>
+              <td class="name-col">HABIB W/B</td>
+              <td class="val-col">64,006.95</td>
+            </tr>
+          
+            <tr>
+              <td class="name-col">DIAMOND SWISS STAR</td>
+              <td class="val-col">60,210.26</td>
+            </tr>
+          
+            <tr>
+              <td class="name-col">ROZAN W/B</td>
+              <td class="val-col">57,884.50</td>
+            </tr>
+          
+            <tr>
+              <td class="name-col">AL DHEFAF JEWELLERY LLC</td>
+              <td class="val-col">54,074.45</td>
+            </tr>
+          
+            <tr>
+              <td class="name-col">ERBIL JEWELLERY LLC</td>
+              <td class="val-col">53,598.90</td>
+            </tr>
+          
+            <tr>
+              <td class="name-col">HAKIM W/B</td>
+              <td class="val-col">49,930.53</td>
+            </tr>
+          
+            <tr>
+              <td class="name-col">ROZAN JEWELLERY LLC</td>
+              <td class="val-col">37,314.62</td>
+            </tr>
+          
+            <tr>
+              <td class="name-col">TIBER W/B</td>
+              <td class="val-col">34,787.29</td>
+            </tr>
+          
+            <tr>
+              <td class="name-col">HADIYA JEWELLERY</td>
+              <td class="val-col">33,335.99</td>
+            </tr>
+          
+            <tr>
+              <td class="name-col">EDRIS W/B</td>
+              <td class="val-col">28,136.15</td>
+            </tr>
+          
+            <tr>
+              <td class="name-col">TAYIF W/B</td>
+              <td class="val-col">26,775.59</td>
+            </tr>
+          
+            <tr>
+              <td class="name-col">SPHINAL JEWELLERS L.L.C</td>
+              <td class="val-col">20,018.00</td>
+            </tr>
+          
+            <tr>
+              <td class="name-col">GLETTER JEWELLERY TRADING CO.</td>
+              <td class="val-col">18,455.60</td>
+            </tr>
+          
+            <tr>
+              <td class="name-col">AL TAAYIF AL THAHABI GOLD</td>
+              <td class="val-col">18,173.50</td>
+            </tr>
+          
+            <tr>
+              <td class="name-col">ALQAMAR ALTHAHABI JEWELLERY L.L.C</td>
+              <td class="val-col">16,895.90</td>
+            </tr>
+          
+            <tr>
+              <td class="name-col">PRICELESS JEWELLERY TRADING LLC</td>
+              <td class="val-col">16,125.62</td>
+            </tr>
+          
+            <tr>
+              <td class="name-col">YUNES ALATTAS JEWELLERY</td>
+              <td class="val-col">13,836.05</td>
+            </tr>
+          
+            <tr>
+              <td class="name-col">EHSAN W/B</td>
+              <td class="val-col">10,154.40</td>
+            </tr>
+          
+            <tr>
+              <td class="name-col">NEW W/B</td>
+              <td class="val-col">10,152.79</td>
+            </tr>
+          
+            <tr>
+              <td class="name-col">ATTAS W/B</td>
+              <td class="val-col">10,147.52</td>
+            </tr>
+          
+            <tr>
+              <td class="name-col">HAJI GLETTER W/B</td>
+              <td class="val-col">9,425.63</td>
+            </tr>
+          
+            <tr>
+              <td class="name-col">PRICELESS W/B</td>
+              <td class="val-col">5,292.64</td>
+            </tr>
+          
+            <tr>
+              <td class="name-col">HAJI W/B</td>
+              <td class="val-col">5,195.40</td>
+            </tr>
+          
+            <tr>
+              <td class="name-col">TABIR W/B</td>
+              <td class="val-col">3,315.73</td>
+            </tr>
+          
+            <tr>
+              <td class="name-col">AHMAD GHADBAN JEWELLERY</td>
+              <td class="val-col">2,912.00</td>
+            </tr>
+          
+            <tr>
+              <td class="name-col">PIN W/B</td>
+              <td class="val-col">2,586.22</td>
+            </tr>
+          
+            <tr>
+              <td class="name-col">GARI W/B</td>
+              <td class="val-col">2,420.28</td>
+            </tr>
+          
+            <tr>
+              <td class="name-col">SALIM W/B</td>
+              <td class="val-col">2,262.80</td>
+            </tr>
+          
+            <tr>
+              <td class="name-col">ALI AL NAJM JEWELLERY LLC</td>
+              <td class="val-col">1,372.35</td>
+            </tr>
+          
+            <tr>
+              <td class="name-col">BARAKAT GOLD JEWELLERY CO.</td>
+              <td class="val-col">1,370.22</td>
+            </tr>
+          
+            <tr>
+              <td class="name-col">AJMAL W/B</td>
+              <td class="val-col">1,353.50</td>
+            </tr>
+          
+            <tr>
+              <td class="name-col">CUSTOMER W/B</td>
+              <td class="val-col">1,063.20</td>
+            </tr>
+          
+            <tr>
+              <td class="name-col">AJNAI W/B</td>
+              <td class="val-col">1,021.79</td>
+            </tr>
+          
+            <tr>
+              <td class="name-col">YUSUF W/B</td>
+              <td class="val-col">884.50</td>
+            </tr>
+          
+            <tr>
+              <td class="name-col">ABDULAALI AL GHADBAN JEWELLERY L.L.C</td>
+              <td class="val-col val-zero">0.00</td>
+            </tr>
+          
+            <tr>
+              <td class="name-col">AL BURHAN GOLDSMITH L.L.C</td>
+              <td class="val-col val-zero">0.00</td>
+            </tr>
+          
+            <tr>
+              <td class="name-col">BAFLEH JEWELLERY L.L.C.</td>
+              <td class="val-col val-zero">0.00</td>
+            </tr>
+          
+            <tr>
+              <td class="name-col">DRR JEWELLERY LLC</td>
+              <td class="val-col val-zero">0.00</td>
+            </tr>
+          
+            <tr>
+              <td class="name-col">FANCY ROSE DMCC</td>
+              <td class="val-col val-zero">0.00</td>
+            </tr>
+          
+            <tr>
+              <td class="name-col">NIC JEWELLERY L.L.C</td>
+              <td class="val-col val-zero">0.00</td>
+            </tr>
+          
+            <tr>
+              <td class="name-col">CHAIN (RAVI) W/B</td>
+              <td class="val-col val-zero">0.00</td>
+            </tr>
+          
+            <tr>
+              <td class="name-col">N.B.S.</td>
+              <td class="val-col val-zero">0.00</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="drawer-footer">
+        <span>Filtered Total</span>
+        <span id="drawer-total">7,492,273.83</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 1. TOTAL EXPENSES DATA (Exact original values)
+    const expensesData = [
+      ["SALARY EXP", 1653534.25],
+      ["FACTORY RENT", 547880],
+      ["RENT NEW ROOM 603", 50000],
+      ["CAMP RENT", 442800],
+      ["STAFF WELFARE", 303023.55],
+      ["FACTORY CONSUMABLES", 304039.77],
+      ["VISA EXP", 74023.75],
+      ["GOLD MAKING PUR", 142491.5525],
+      ["MACHINERY & REPAIR", 27536.83],
+      ["FACTORY EXP", 401765.39],
+      ["ELECTRCTY & WATER", 77244.35],
+      ["SILVER PUR", 25748],
+      ["METAL TESTING", 3650.043],
+      ["VISA RELATED EXP", 24720.5],
+      ["PEST CONTROL", 1700],
+      ["SALIK", 15560],
+      ["DEWA EXPENSES ROOM AL KHIL ROOM 603", 9612.34],
+      ["EMIRATE ID APP", 9240],
+      ["EMIRATE GAS", 12491],
+      ["PETROL EXP", 18758.75],
+      ["BUS RENT", 60000],
+      ["MEDICAL INSURANCE", 37976.4],
+      ["EMPLOYEES MEDICAL", 7658.59],
+      ["PARKING", 930],
+      ["MACHINERY PARTS URD", 34733.23],
+      ["TOYOTA CAR REPAIRING EXP", 9734.21],
+      ["TEL & WIFI CHARGES", 24658.49],
+      ["E-INVOICING", 8500],
+      ["AIR FLIGHT TICKET", 66544.1],
+      ["CAMERA REPAIR & INSTALLATION", 285.72],
+      ["CUSTOM EXP", null],
+      ["AUDETOR FEE", 17600],
+      ["BANK INTEREST", -350.73],
+      ["FAC TAXI EXP", 7366],
+      ["SERVICE CHAGES", 5404.17],
+      ["URD MACHINERY", 552.14],
+      ["AMC FIRE ALRAM SYATEM", 4600],
+      ["AMC FOR GAS PANEL", 8000],
+      ["CEC CARD RENEWAL", 1960],
+      ["COMPUTER REPAIR & MAINT.", 2042],
+      ["DUBAI CIVIL DEFENCE", 2040],
+      ["STATIONERY EXPENSES", 2124.71],
+      ["TEA & FOOD EXPENSES", 3974.75],
+      ["IMPORT & CSTOM DUTY RELATED EXP'S", 25],
+      ["TRADE LICENSE RENEWAL", 10061],
+      ["COURIER CHARGES", 3422.5],
+      ["SOFTWARE", 160],
+      ["BANK CHARGES", 1931.63],
+      ["CORPORATE TAX FY 2025", 38185],
+      ["OTHER INCOME SELLING SCRAP", -41650]
+    ];
+
+    // 2. TOTAL SALES MAKING DATA (Exact original values)
+    const salesMakingData = [
+      ["ABDULAALI AL GHADBAN JEWELLERY L.L.C", 0],
+      ["AHMAD GHADBAN JEWELLERY", 2912],
+      ["AL AKSA JEWELLERS L.L.C", 81967.1],
+      ["AL BASRA JEWELLERY L.L.C", 67478.5],
+      ["AL BURHAN GOLDSMITH L.L.C", 0],
+      ["AL DHEFAF JEWELLERY LLC", 54074.45],
+      ["AL DURRA JEWELLERY", 81119.1],
+      ["AL GHADBAN JEWELLERY LLC", 445788.93],
+      ["AL SAYYEDA JEWELLERY", 2522744.03],
+      ["AL TAAYIF AL THAHABI GOLD", 18173.5],
+      ["AL WED JEWELLERY LLC", 151893.84],
+      ["AL YAQEEN JEWELLERY L.L.C", 282423.35],
+      ["ALI AL NAJM JEWELLERY LLC", 1372.35],
+      ["ALQAMAR ALTHAHABI JEWELLERY L.L.C", 16895.9],
+      ["ANVAR LUXURY JEWELLERY", 381953.47],
+      ["BAFLEH JEWELLERY L.L.C.", 0],
+      ["BARAKAT GOLD JEWELLERY CO.", 1370.22],
+      ["DIAMOND SWISS STAR", 60210.26],
+      ["DRR JEWELLERY LLC", 0],
+      ["ERBIL JEWELLERY LLC", 53598.9],
+      ["FANCY ROSE DMCC", 0],
+      ["GLETTER JEWELLERY TRADING CO.", 18455.6],
+      ["GOLDEN ROSE JEWELLERY (H.O.)", 124366.85],
+      ["GOLDEN ROSE JEWELLERY CO LLC", 149267.09],
+      ["HADIYA JEWELLERY", 33335.99],
+      ["ISAM SHARRAD JEWELLERY LLC", 255687.2],
+      ["KUL AL AQMAR JEWELLERY LLC", 73035.4],
+      ["NAWAEM GOLD JEWELLERY LLC", 284118.78],
+      ["NIC JEWELLERY L.L.C", 0],
+      ["PRICELESS JEWELLERY TRADING LLC", 16125.62],
+      ["ROZAN JEWELLERY LLC", 37314.62],
+      ["SAHI JEWELLERY LLC", 103998.51],
+      ["SOMER JEWELLERY", 145824.65],
+      ["SPHINAL JEWELLERS L.L.C", 20018],
+      ["TOBACTOS JEWELLERY L.L.C", 181559.66],
+      ["YUNES ALATTAS JEWELLERY", 13836.05],
+      ["ZAHRAT ALNAQASH JEWELLERY", 77187],
+      ["AJMAL W/B", 1353.5],
+      ["AJNAI W/B", 1021.79],
+      ["AMOLITE W/B", 69119.79],
+      ["ATTAS W/B", 10147.52],
+      ["CHAIN (RAVI) W/B", 0],
+      ["CUSTOMER W/B", 1063.2],
+      ["EDRIS W/B", 28136.15],
+      ["EHSAN W/B", 10154.4],
+      ["GARI W/B", 2420.28],
+      ["HABIB W/B", 64006.95],
+      ["HAJI GLETTER W/B", 9425.63],
+      ["HAJI W/B", 5195.4],
+      ["HAKIM W/B", 49930.53],
+      ["MIDER W/B", 80283.66],
+      ["N.B.S.", 0],
+      ["NEW W/B", 10152.79],
+      ["PARI W/B", 1173539.8],
+      ["PIN W/B", 2586.22],
+      ["PRICELESS W/B", 5292.64],
+      ["ROZAN W/B", 57884.5],
+      ["SALIM W/B", 2262.8],
+      ["TABIR W/B", 3315.73],
+      ["TAYIF W/B", 26775.59],
+      ["TIBER W/B", 34787.29],
+      ["YAQEEN 2 W/B", 84426.25],
+      ["YUSUF W/B", 884.5]
+    ];
+
+    // 3. IN MARKET RECEIVABLES DATA (Exact original values)
+    const inMarketData = [
+      ["ABDULAALI AL GHADBAN JEWELLERY L.L.C", -1.238095238],
+      ["AHMAD GHADBAN JEWELLERY", -0.685714286],
+      ["AL AKSA JEWELLERS L.L.C", 24543.20476],
+      ["AL BASRA JEWELLERY L.L.C", 19860.82381],
+      ["AL BURHAN GOLDSMITH L.L.C", 0],
+      ["AL DHEFAF JEWELLERY LLC", 15466.07857],
+      ["AL DURRA JEWELLERY", 81119.1],
+      ["AL GHADBAN JEWELLERY LLC", 41840.91095],
+      ["AL SAYYEDA JEWELLERY", 161530.7443],
+      ["AL TAAYIF AL THAHABI GOLD", 6397.157143],
+      ["AL WED JEWELLERY LLC", 91.66857143],
+      ["AL YAQEEN JEWELLERY L.L.C", 34012.5119],
+      ["ALI AL NAJM JEWELLERY LLC", 1372.35],
+      ["ALQAMAR ALTHAHABI JEWELLERY L.L.C", 7372.090476],
+      ["ANVAR LUXURY JEWELLERY", 11.94619048],
+      ["BAFLEH JEWELLERY L.L.C.", 0],
+      ["BARAKAT GOLD JEWELLERY CO.", -3.894285714],
+      ["DIAMOND SWISS STAR", 40732.73619],
+      ["DRR JEWELLERY LLC", -3.066666667],
+      ["ERBIL JEWELLERY LLC", 29315.47143],
+      ["FANCY ROSE DMCC", 0],
+      ["GLETTER JEWELLERY TRADING CO.", 14379.80952],
+      ["GOLDEN ROSE JEWELLERY (H.O.)", 124366.85],
+      ["GOLDEN ROSE JEWELLERY CO LLC", -382.4338095],
+      ["HADIYA JEWELLERY", 11888.37095],
+      ["ISAM SHARRAD JEWELLERY LLC", 113466.2571],
+      ["KUL AL AQMAR JEWELLERY LLC", 8445.009524],
+      ["NAWAEM GOLD JEWELLERY LLC", 83384.00857],
+      ["NIC JEWELLERY L.L.C", -0.20952381],
+      ["PRICELESS JEWELLERY TRADING LLC", 177.9342857],
+      ["ROZAN JEWELLERY LLC", 33595.09619],
+      ["SAHI JEWELLERY LLC", 12937.33857],
+      ["SOMER JEWELLERY", 2975.564286],
+      ["SPHINAL JEWELLERS L.L.C", 27807.5619],
+      ["TOBACTOS JEWELLERY L.L.C", 49192.60286],
+      ["YUNES ALATTAS JEWELLERY", 156.7833333],
+      ["ZAHRAT ALNAQASH JEWELLERY", 3163.571429],
+      ["AJMAL W/B", 443.06],
+      ["AJNAI W/B", 1.79],
+      ["AMOLITE W/B", 72969.01],
+      ["ATTAS W/B", -0.48],
+      ["CHAIN (RAVI) W/B", 0],
+      ["CUSTOMER W/B", 3.2],
+      ["EDRIS W/B", 28136.15],
+      ["EHSAN W/B", 445.36],
+      ["GARI W/B", 20.28],
+      ["HABIB W/B", 0.95],
+      ["HAJI GLETTER W/B", 25.63],
+      ["HAJI W/B", 1.4],
+      ["HAKIM W/B", 3.53],
+      ["MIDER W/B", 26.13],
+      ["N.B.S.", 0],
+      ["NEW W/B", 2.79],
+      ["PARI W/B", -6708.31],
+      ["PIN W/B", 1.22],
+      ["PRICELESS W/B", 9.64],
+      ["ROZAN W/B", 2.6],
+      ["SALIM W/B", -7.2],
+      ["TABIR W/B", 0.73],
+      ["TAYIF W/B", 177.29],
+      ["TIBER W/B", 13.29],
+      ["YAQEEN 2 W/B", 678.25],
+      ["YUSUF W/B", -0.5]
+    ];
+
+    // 4. IN-HAND DEDUCTION STEPS (Exact original numbers & labels)
+    const cascadeSteps = [
+      { step: 1, dedTitle: "GOLD PURCHA.", dedAmt: "953,747.47", remAmt: "1,028,779.54", hint: "Tap to expand" },
+      { step: 2, dedTitle: "ADVANCE", dedAmt: "6,720.00", remAmt: "1,022,059.54", hint: "Tap to expand" },
+      { step: 3, dedTitle: "FAZEL BHAI", dedAmt: "241,328.03", remAmt: "780,731.51", hint: "Tap to expand" },
+      { step: 4, dedTitle: "ZAHEER BHAI", dedAmt: "226,192.19", remAmt: "554,539.32", hint: "Tap to expand" },
+      { step: 5, dedTitle: "HEKMAT BHAI", dedAmt: "65,686.77", remAmt: "488,852.55", hint: "Tap to expand" },
+      { step: 6, dedTitle: "MUSTAFA BHAI", dedAmt: "5,007.52", remAmt: "483,845.03", hint: "Tap for final step" },
+      { step: 7, dedTitle: "MACHINERY", dedAmt: "82,421.09", remAmt: "401,423.94", isFinal: true }
+    ];
+
+    const drawerConfigs = {
+      sales: { title: "CUSTOMER MAKING BREAKDOWN", data: salesMakingData, label: "Accounts" },
+      exp: { title: "EXPENSE HEADS", data: expensesData, label: "Items" },
+      market: { title: "PENDING IN MARKET", data: inMarketData, label: "Accounts" }
+    };
+
+    let activeDrawerType = null;
+    let activeDrawerBtnId = null;
+
+    function formatNum(num) {
+      if (num === null || num === undefined) return "—";
+      return Number(num).toLocaleString("en-US", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+    }
+
+    // Build flat 2-column rows so EVERY step opens straight down in the exact same column
+    function buildCascade() {
+      const mount = document.getElementById("cascade-mount");
+      let html = "";
+
+      cascadeSteps.forEach((item) => {
+        const nextStep = item.step + 1;
+        const rightCard = item.isFinal
+          ? `
+            <div class="node-card card-final">
+              <div class="badge">Final Closing Balance</div>
+              <div class="title">IN HAND</div>
+              <div class="amount">${item.remAmt}</div>
+            </div>
+          `
+          : `
+            <div class="node-card card-inhand" id="btn-ih${nextStep}" onclick="toggleCascadeStep(${nextStep})">
+              <div class="badge">Remaining</div>
+              <div class="title">IN HAND</div>
+              <div class="amount">${item.remAmt}</div>
+              <div class="hint">${item.hint} <span class="chevron">▼</span></div>
+            </div>
+          `;
+
+        html += `
+          <div class="step-row-wrap" id="step-row-${item.step}">
+            <!-- Vertical stem dropping directly from the right-side IN HAND card above -->
+            <div class="right-stem-row">
+              <div></div>
+              <div class="right-stem-cell">
+                <div class="right-stem-line"></div>
+              </div>
+            </div>
+
+            <!-- Horizontal T-split into Left (Deduction) & Right (Remaining IN HAND) in the EXACT same column alignment -->
+            <div class="aligned-pair">
+              <div class="aligned-cell">
+                <div class="node-card card-deduction">
+                  <div class="badge">Deduction ${item.step}</div>
+                  <div class="title">${item.dedTitle}</div>
+                  <div class="amount">${item.dedAmt}</div>
+                </div>
+              </div>
+              <div class="aligned-cell">
+                ${rightCard}
+              </div>
+            </div>
+          </div>
+        `;
+      });
+
+      mount.innerHTML = html;
+    }
+
+    // Floating Drawer Open / Close / Toggle
+    function openFloatingDrawer(type, btnId) {
+      const backdrop = document.getElementById("float-backdrop");
+
+      if (activeDrawerType === type && backdrop.classList.contains("open")) {
+        closeFloatingDrawer();
+        return;
+      }
+
+      if (activeDrawerBtnId) {
+        document.getElementById(activeDrawerBtnId)?.classList.remove("active");
+      }
+
+      activeDrawerType = type;
+      activeDrawerBtnId = btnId;
+      document.getElementById(btnId)?.classList.add("active");
+
+      document.getElementById("drawer-title").textContent = drawerConfigs[type].title;
+      document.getElementById("drawer-search").value = "";
+      document.getElementById("drawer-sort").value = "default";
+
+      renderActiveDrawer();
+      backdrop.classList.add("open");
+    }
+
+    function closeFloatingDrawer() {
+      document.getElementById("float-backdrop").classList.remove("open");
+      if (activeDrawerBtnId) {
+        document.getElementById(activeDrawerBtnId)?.classList.remove("active");
+        activeDrawerBtnId = null;
+      }
+      activeDrawerType = null;
+    }
+
+    function handleBackdropClick(e) {
+      if (e.target.id === "float-backdrop") {
+        closeFloatingDrawer();
+      }
+    }
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") closeFloatingDrawer();
+    });
+
+    function renderActiveDrawer() {
+      if (!activeDrawerType) return;
+      const cfg = drawerConfigs[activeDrawerType];
+      const query = document.getElementById("drawer-search").value.toLowerCase().trim();
+      const sortMode = document.getElementById("drawer-sort").value;
+
+      let rows = cfg.data.filter(([name]) => name.toLowerCase().includes(query));
+
+      if (sortMode === "desc") {
+        rows = [...rows].sort((a, b) => (b[1] ?? -Infinity) - (a[1] ?? -Infinity));
+      } else if (sortMode === "asc") {
+        rows = [...rows].sort((a, b) => (a[1] ?? Infinity) - (b[1] ?? Infinity));
+      } else if (sortMode === "alpha") {
+        rows = [...rows].sort((a, b) => a[0].localeCompare(b[0]));
+      }
+
+      let sum = 0;
+      const tbody = document.getElementById("drawer-tbody");
+      tbody.innerHTML = rows
+        .map(([name, val]) => {
+          if (typeof val === "number") sum += val;
+          let cls = "val-col";
+          if (val < 0) cls += " val-neg";
+          else if (val === 0 || val === null) cls += " val-zero";
+          return `
+            <tr>
+              <td class="name-col">${name}</td>
+              <td class="${cls}">${formatNum(val)}</td>
+            </tr>
+          `;
+        })
+        .join("");
+
+      document.getElementById("drawer-count").textContent = `${rows.length} ${cfg.label}`;
+      document.getElementById("drawer-total").textContent = formatNum(sum);
+    }
+
+    // Toggle Profit -> IN MARKET vs IN HAND
+    function toggleProfitSplit() {
+      const panel = document.getElementById("profit-panel");
+      const btn = document.getElementById("btn-profit");
+      const isOpen = panel.classList.contains("open");
+
+      if (isOpen) {
+        panel.classList.remove("open");
+        btn.classList.remove("active");
+        // Close all steps below when Profit is closed
+        for (let i = 1; i <= 7; i++) {
+          document.getElementById(`step-row-${i}`)?.classList.remove("open");
+          document.getElementById(`btn-ih${i}`)?.classList.remove("active");
+        }
+      } else {
+        panel.classList.add("open");
+        btn.classList.add("active");
+      }
+    }
+
+    // Toggle step straight down in the exact same column
+    function toggleCascadeStep(stepNum) {
+      const row = document.getElementById(`step-row-${stepNum}`);
+      const btn = document.getElementById(`btn-ih${stepNum}`);
+      const isOpen = row.classList.contains("open");
+
+      if (isOpen) {
+        // Close this step and any steps below it so connectors stay connected
+        for (let i = stepNum; i <= 7; i++) {
+          document.getElementById(`step-row-${i}`)?.classList.remove("open");
+          document.getElementById(`btn-ih${i}`)?.classList.remove("active");
+        }
+      } else {
+        row.classList.add("open");
+        btn.classList.add("active");
+        setTimeout(() => {
+          row.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }, 60);
+      }
+    }
+
+    // Expand full flow straight down
+    function expandCashFlow() {
+      document.getElementById("profit-panel")?.classList.add("open");
+      document.getElementById("btn-profit")?.classList.add("active");
+
+      for (let i = 1; i <= 7; i++) {
+        document.getElementById(`step-row-${i}`)?.classList.add("open");
+        document.getElementById(`btn-ih${i}`)?.classList.add("active");
+      }
+    }
+
+    // Collapse everything & close floating modal
+    function collapseAll() {
+      closeFloatingDrawer();
+      document.getElementById("profit-panel")?.classList.remove("open");
+      document.querySelectorAll(".step-row-wrap").forEach((el) => el.classList.remove("open"));
+      document.querySelectorAll(".node-card").forEach((el) => el.classList.remove("active"));
+    }
+
+    // Initialize App
+    buildCascade();
+  </script>
+<!-- Code injected by live-server -->
+<script>
+	// <![CDATA[  <-- For SVG support
+	if ('WebSocket' in window) {
+		(function () {
+			function refreshCSS() {
+				var sheets = [].slice.call(document.getElementsByTagName("link"));
+				var head = document.getElementsByTagName("head")[0];
+				for (var i = 0; i < sheets.length; ++i) {
+					var elem = sheets[i];
+					var parent = elem.parentElement || head;
+					parent.removeChild(elem);
+					var rel = elem.rel;
+					if (elem.href && typeof rel != "string" || rel.length == 0 || rel.toLowerCase() == "stylesheet") {
+						var url = elem.href.replace(/(&|\?)_cacheOverride=\d+/, '');
+						elem.href = url + (url.indexOf('?') >= 0 ? '&' : '?') + '_cacheOverride=' + (new Date().valueOf());
+					}
+					parent.appendChild(elem);
+				}
+			}
+			var protocol = window.location.protocol === 'http:' ? 'ws://' : 'wss://';
+			var address = protocol + window.location.host + window.location.pathname + '/ws';
+			var socket = new WebSocket(address);
+			socket.onmessage = function (msg) {
+				if (msg.data == 'reload') window.location.reload();
+				else if (msg.data == 'refreshcss') refreshCSS();
+			};
+			if (sessionStorage && !sessionStorage.getItem('IsThisFirstTime_Log_From_LiveServer')) {
+				console.log('Live reload enabled.');
+				sessionStorage.setItem('IsThisFirstTime_Log_From_LiveServer', true);
+			}
+		})();
+	}
+	else {
+		console.error('Upgrade your browser. This Browser is NOT supported WebSocket for Live-Reloading.');
+	}
+	// ]]>
+</script>
+
+</body></html>
